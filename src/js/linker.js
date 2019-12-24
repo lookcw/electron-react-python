@@ -1,9 +1,9 @@
-function execute_python() {
+export function execute_python() {
     var path = require("path")
   
     const city = 'XYZ';
     var options = {
-      scriptPath : path.join(__dirname, '../python/'),
+      scriptPath : path.join(__dirname, '../../python/'),
       args : [city]
     }
   
