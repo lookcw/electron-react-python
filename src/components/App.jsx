@@ -1,47 +1,61 @@
-// Libraries
 import React from 'react';
-// import {execute_python} from '../js/linker';
-// Components
-// const App = () => (
-//   <div className="header">
-//     <h1>Hello, World</h1>
-//   </div>
-// );
+import { Route, withRouter } from 'react-router-dom';
+import Results from './results'
+import UploadPage from './upload-page'
 
+var selectedTab;
 
-
-
+function zip(a, b) {
+  return a.map(function (e, i) {
+    return [e, b[i]];
+  });
+}
 
 class App extends React.Component {
- execute_python() {
-    var path = require("path")
-  
-    const city = 'XYZ';
-    var options = {
-      scriptPath : path.join(__dirname, '../../python/'),
-      args : [city]
+
+
+  constructor(props) {
+    super(props);
+    this.state = {
+      prediction: null,
+      conf: null,
+      heatmap: new Array(10)
+        .fill(0)
+        .map(() =>
+          new Array(10).fill(0)
+        ),
+      fft: { 'freq': [], 'yfMat': [] }
     }
-  
-    const {PythonShell} = require("python-shell");
-  
-    var shell = new PythonShell('main.py', options); //executes python script on python3
-  
-    shell.on('message', function(message) {
-      console.log("what the fuck is up youtube")
-      swal(message); //message is STD output of python script
+    this.setPred = this.setPred.bind(this)
+  }
+
+  setPred(predData) {
+    let fft = predData.fft
+    let zipped_ffts = fft.yfMat.map(x => zip(fft.freq, x))
+    zipped_ffts = zipped_ffts.map((x, i) => { return { label: `e${fft.electrodes[i]}`, data: x } })
+    this.setState({
+      prediction: predData.prediction,
+      conf: predData.conf,
+      heatmap: predData.heatmap,
+      fft: zipped_ffts
     })
   }
 
 
-  render (){
+
+  render() {
     return (
-      <div className="header">
-           <h1>Hello, World</h1>
-          <button onClick={this.execute_python}>what why</button>
+      <div>
+        <Route exact path="/"><UploadPage setPred={this.setPred} /></Route>
+        <Route path="/results">
+          <Results prediction={this.state.prediction}
+            conf={this.state.conf}
+            heatmap={this.state.heatmap}
+            fft={this.state.fft} />
+        </Route>
       </div>
-    )
+    );
   }
 }
 
-
-export default App;
+export default withRouter(App);
